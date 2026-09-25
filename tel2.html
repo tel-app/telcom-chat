@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TelCom - Ultra Chat</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #0b0f19;
+            --bg-header: rgba(17, 24, 39, 0.9);
+            --bg-card: #1f2937;
+            --accent-teal: #14b8a6;
+            --accent-purple: #8b5cf6;
+            --accent-pink: #ec4899;
+            --text-main: #f9fafb;
+            --text-muted: #9ca3af;
+            --incoming-bg: #1f2937;
+            --outgoing-bg: #0d9488;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 20px;
+            background: var(--bg-header);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            z-index: 10;
+        }
+
+        #tel {
+            font-size: 24px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .user-badge {
+            font-size: 13px;
+            font-weight: 600;
+            background: rgba(139, 92, 246, 0.15);
+            color: #c4b5fd;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            padding: 6px 14px;
+            border-radius: 20px;
+        }
+
+        #pinned-banner {
+            background: linear-gradient(90deg, rgba(30, 27, 75, 0.9), rgba(15, 23, 42, 0.9));
+            border-left: 4px solid var(--accent-purple);
+            padding: 12px 20px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .pinned-label {
+            font-weight: 700;
+            color: var(--accent-teal);
+            font-size: 11px;
+            margin-right: 10px;
+            text-transform: uppercase;
+        }
+
+        #pinned-content {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-weight: 500;
+            color: #e2e8f0;
+        }
+
+        #chat-container {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .message {
+            padding: 12px 16px;
+            border-radius: 16px;
+            max-width: 80%;
+            word-wrap: break-word;
+            font-size: 14px;
+            line-height: 1.5;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            animation: popIn 0.15s ease-out;
+        }
+
+        @keyframes popIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.incoming {
+            align-self: flex-start;
+            background-color: var(--incoming-bg);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-top-left-radius: 4px;
+        }
+
+        .message.outgoing {
+            align-self: flex-end;
+            background: linear-gradient(135deg, #0d9488, #0f766e);
+            border-top-right-radius: 4px;
+            color: #ffffff;
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+            gap: 12px;
+        }
+
+        .username {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--accent-teal);
+        }
+        .message.outgoing .username { color: #99f6e4; }
+
+        .message-tag {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 12px;
+            text-transform: uppercase;
+        }
+
+        .tag-Ujumbe { background: rgba(255, 255, 255, 0.1); color: #cbd5e1; }
+        .tag-Muhimu { background: rgba(239, 68, 68, 0.3); color: #fca5a5; }
+        .tag-Swali { background: rgba(59, 130, 246, 0.3); color: #93c5fd; }
+        .tag-Kazi { background: rgba(245, 158, 11, 0.3); color: #fde047; }
+
+        .message-footer {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 10px;
+            margin-top: 4px;
+        }
+
+        .timestamp { font-size: 10px; opacity: 0.7; }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #fca5a5;
+            font-size: 11px;
+            cursor: pointer;
+            opacity: 0.7;
+        }
+        .delete-btn:hover { opacity: 1; text-decoration: underline; }
+
+        .system-notification {
+            align-self: center;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-muted);
+            font-size: 12px;
+            padding: 6px 16px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .alert-box {
+            position: fixed;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ef4444;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            z-index: 100;
+            box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4);
+        }
+
+        .controls-area {
+            background: var(--bg-header);
+            padding: 14px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .leader-controls, .form-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        input, select {
+            background: #1f2937;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .leader-controls input { flex: 1; }
+
+        button {
+            background: var(--accent-purple);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        #bt { background: var(--accent-teal); width: 100px; }
+        #text { flex: 1; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <p id="tel">TelCom</p>
+        <div class="user-badge" id="display-user">👤 Inapakia...</div>
+    </header>
+
+    <div id="pinned-banner">
+        <div>
+            <span class="pinned-label">📌 Mada:</span>
+            <span id="pinned-content">Inasubiri mada...</span>
+        </div>
+    </div>
+
+    <div id="chat-container"></div>
+
+    <div class="controls-area">
+        <div class="leader-controls" id="leader-section" style="display: none;">
+            <input type="text" id="topic-input" placeholder="Weka mada mpya ya group...">
+            <button onclick="setTopic()">Pin Mada</button>
+        </div>
+
+        <form onsubmit="sendMSG(event)" class="form-row">
+            <select id="tag-select">
+                <option value="Ujumbe">💬 Ujumbe</option>
+                <option value="Muhimu">🔥 Muhimu</option>
+                <option value="Swali">❓ Swali</option>
+                <option value="Kazi">📌 Kazi</option>
+            </select>
+            <input type="text" id="text" placeholder="Andika ujumbe hapa..." autocomplete="off" required>
+            <button type="submit" id="bt">Tuma</button>
+        </form>
+    </div>
+
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script>
+        const socket = io();
+        
+        let username = prompt("Weka jina lako la mtumiaji (Username):");
+        if (!username || username.trim() === "") {
+            username = "Mwanachama_" + Math.floor(Math.random() * 8999 + 1000);
+        } else {
+            username = username.trim();
+        }
+
+        document.getElementById("display-user").innerHTML = `👤 <b>${escapeHTML(username)}</b>`;
+        
+        // Jiunge na Server
+        socket.emit("join", { username: username });
+
+        const chatBox = document.getElementById("chat-container");
+        const textInput = document.getElementById("text");
+        const tagSelect = document.getElementById("tag-select");
+
+        // Pokea Historia ya Nyuma punde tu unapojiunga
+        socket.on("init_data", function(data) {
+            if(data.pinned_topic) {
+                updatePinnedTopicUI(data.pinned_topic.topic, data.pinned_topic.leader);
+            }
+            if(data.is_leader) {
+                document.getElementById("leader-section").style.display = "flex";
+            }
+            if(data.history && Array.isArray(data.history)) {
+                chatBox.innerHTML = ""; // Safisha kwanza
+                data.history.forEach(msg => displayMessage(msg)); // Weka historia yote kiooni
+            }
+        });
+
+        socket.on("update_topic", function(data) {
+            updatePinnedTopicUI(data.topic, data.leader);
+            appendSystemMessage(`📢 Kiongozi ${data.leader} ameweka mada mpya.`);
+        });
+
+        // Pokea meseji YOYOTE inayotumwa soketi (Yako au ya wengine)
+        socket.on("chat_message", function(data) {
+            displayMessage(data);
+        });
+
+        socket.on("remove_message", function(data) {
+            const msgElement = document.getElementById(`msg-${data.id}`);
+            if(msgElement) {
+                msgElement.remove();
+            }
+        });
+
+        socket.on("notification", function(data) {
+            appendSystemMessage(data.message);
+        });
+
+        socket.on("alert_notification", function(data) {
+            showAlertToast("⚠️ " + data.message);
+        });
+
+        // Onyesha meseji kwenye kioo
+        function displayMessage(data) {
+            if (!data || !data.message) return;
+
+            // Zuia duplicate ikiwa id ipo
+            if (data.id && document.getElementById(`msg-${data.id}`)) return;
+
+            const newMessage = document.createElement("div");
+            
+            // Hakikisha jina linasomeka sawa bila matatizo ya mikato/harufusafi
+            const isSelf = String(data.username).trim().toLowerCase() === String(username).trim().toLowerCase();
+            
+            newMessage.className = `message ${isSelf ? 'outgoing' : 'incoming'}`;
+            if(data.id) newMessage.id = `msg-${data.id}`;
+
+            const timeNow = data.time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const tagClass = `tag-${data.tag || 'Ujumbe'}`;
+
+            newMessage.innerHTML = `
+                <div class="message-header">
+                    <span class="username">${escapeHTML(data.username)}</span>
+                    <span class="message-tag ${tagClass}">${escapeHTML(data.tag || 'Ujumbe')}</span>
+                </div>
+                <div class="message-body">${escapeHTML(data.message)}</div>
+                <div class="message-footer">
+                    ${data.id ? `<button class="delete-btn" onclick="deleteMessage('${data.id}')">Futa</button>` : ''}
+                    <span class="timestamp">${timeNow}</span>
+                </div>
+            `;
+
+            chatBox.appendChild(newMessage);
+            
+            // Shusha skrini chini kabisa mara moja
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function setTopic() {
+            const topicInput = document.getElementById("topic-input");
+            const topic = topicInput.value.trim();
+            if(topic) {
+                socket.emit("set_topic", { topic: topic, username: username });
+                topicInput.value = "";
+            }
+        }
+
+        function sendMSG(event) {
+            event.preventDefault();
+            const message = textInput.value.trim();
+            const tag = tagSelect.value;
+            if (message === "") return;
+
+            const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            // Tuma meseji kwenda Flask Server
+            socket.emit("send_message", { 
+                username: username, 
+                message: message, 
+                tag: tag, 
+                time: timeNow 
+            });
+            
+            textInput.value = "";
+            textInput.focus();
+        }
+
+        function deleteMessage(id) {
+            if(confirm("Je, una uhakika unataka kufuta ujumbe huu?")) {
+                socket.emit("delete_message", { id: id, username: username });
+            }
+        }
+
+        function appendSystemMessage(text) {
+            const notification = document.createElement("div");
+            notification.className = "system-notification";
+            notification.textContent = text;
+            chatBox.appendChild(notification);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function updatePinnedTopicUI(topic, leader) {
+            document.getElementById("pinned-content").textContent = `${topic} (Kiongozi: ${leader})`;
+        }
+
+        function showAlertToast(msg) {
+            const toast = document.createElement("div");
+            toast.className = "alert-box";
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.remove();
+            }, 6000);
+        }
+
+        function escapeHTML(text) {
+            const div = document.createElement("div");
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
